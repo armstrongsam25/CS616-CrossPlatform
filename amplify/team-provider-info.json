@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-cs616crossplatform-dev-221243-authRole",
+      "UnauthRoleArn": "arn:aws:iam::180006299993:role/amplify-cs616crossplatform-dev-221243-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::180006299993:role/amplify-cs616crossplatform-dev-221243-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-cs616crossplatform-dev-221243-deployment",
+      "UnauthRoleName": "amplify-cs616crossplatform-dev-221243-unauthRole",
+      "StackName": "amplify-cs616crossplatform-dev-221243",
+      "StackId": "arn:aws:cloudformation:us-east-1:180006299993:stack/amplify-cs616crossplatform-dev-221243/0544e840-5692-11ee-a744-0a87e6cdab99",
+      "AmplifyAppId": "d1bsi2x8so4yuv"
+    },
+    "categories": {
+      "auth": {
+        "cs616crossplatform0c17bd23": {}
+      }
+    }
+  }
+}
