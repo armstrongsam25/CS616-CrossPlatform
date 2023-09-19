@@ -14,3 +14,5 @@ If you would like to contribute to Skywalk, please fork this repository and subm
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+---
