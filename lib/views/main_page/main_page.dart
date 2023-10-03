@@ -1,108 +1,155 @@
-
-import 'package:Skywalk/models/user_case.dart';
-import 'package:Skywalk/utils/status_codes.dart';
-import 'package:Skywalk/views/add_user_case/add_user_case_page.dart';
-import 'package:Skywalk/views/common_widgets/common_widgets.dart';
-import 'package:Skywalk/views/main_page/controllers/main_page_controller.dart';
-import 'package:Skywalk/views/main_page/widgets/case_card.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; 
-import 'dart:developer' as developer;
- 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.dart';
+import 'package:get/get.dart';
+import 'package:Skywalk/views/login_page/login_page.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+// import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_maps_webservice/places.dart';
 
+class MainPage extends StatefulWidget {
   @override
-  State<MainPage> createState() => _MainPageState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> { 
+class _MainPageState extends State<MainPage> {
+  late GoogleMapController mapController;
+  late GoogleMapsPlaces _places;
+  final LatLng _center = const LatLng(37.422060, -122.084057);
+  Set<Marker> _markers = {};
+  String userId = '';
+  String userEmail = '';
 
- 
   @override
   void initState() {
-    
-    if (!Get.isRegistered<MainPageController>()) {
-      Get.put(MainPageController());
-    }
- 
     super.initState();
+    _places =
+        GoogleMapsPlaces(apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE");
+    _fetchUserId();
   }
+
+  Future<void> _fetchUserId() async {
+    try {
+      final user = await Amplify.Auth.getCurrentUser();
+      final attributes = await Amplify.Auth.fetchUserAttributes();
+
+      final emailAttribute = attributes.firstWhere(
+        (attribute) => attribute.userAttributeKey.toString() == "email",
+        orElse: () => AuthUserAttribute(
+          userAttributeKey: AuthUserAttributeKey.email,
+          value: "",
+        ),
+      );
+
+      setState(() {
+        userId = user.userId;
+        userEmail = emailAttribute.value;
+      });
+    } catch (e) {
+      print("Error getting user ID: $e");
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await Amplify.Auth.signOut();
+      Get.offAll(() => LoginPage());
+    } catch (e) {
+      print("Error signing out: $e");
+    }
+  }
+
+  Future<void> _displayPrediction(Prediction? p) async {
+    try {
+      if (p == null) {
+        print("Prediction is null");
+        return;
+      }
+      final detail = await _places.getDetailsByPlaceId(p.placeId!);
+      final lat = detail.result.geometry?.location.lat;
+      final lng = detail.result.geometry?.location.lng;
+      if (lat == null || lng == null) {
+        print("Location details are null");
+        return;
+      }
+      print(p.description);
+      print(lat);
+      print(lng);
+
+      // Move the camera to the location
+      mapController.moveCamera(CameraUpdate.newLatLng(LatLng(lat, lng)));
+      // Optionally add a marker on the location
+      setState(() {
+        // This assumes you have a markers Set declared in your state
+        _markers.add(Marker(
+          markerId: MarkerId(p.placeId!), // A unique id for each marker
+          position: LatLng(lat, lng),
+        ));
+      });
+    } catch (e) {
+      print("Error in _displayPrediction: $e");
+    }
+  }
+
   @override
-  Widget build(BuildContext context) { 
-
+  Widget build(BuildContext context) {
     return Scaffold(
- 
-      appBar: AppBar(title: Text("Signup Page")),
-      body: Container( 
-        padding: EdgeInsets.all(10),
-        child: Column(
+      appBar: AppBar(
+        title: Text("Main Page"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () async {
+              try {
+                final p = await PlacesAutocomplete.show(
+                  context: context,
+                  apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE",
+                  mode: Mode.overlay,
+                  language: "en",
+                  components: [Component(Component.country, "us")],
+                );
+
+                await _displayPrediction(p);
+              } catch (e) {
+                print("Error: $e");
+              }
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                     Obx((){
-                      if(MainPageController.to.status == STATUS_CODES.QUERY_SUCCESSFULL.code
-                      || MainPageController.to.status == STATUS_CODES.USER_CASE_ADDED_SUCCESSFULL.code){ 
-                   return getCaseList();
-                      }
-                      else{
-                        return CommonWidgets.getInformationCard(context,MainPageController.to.status);
-                      }
-
-                     }
-                     
-                     
-                     ),
-                         
-                ]),
+            UserAccountsDrawerHeader(
+              accountName: Text(userId),
+              accountEmail: Text(userEmail),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor:
+                    Theme.of(context).platform == TargetPlatform.iOS
+                        ? Colors.amberAccent
+                        : Colors.white,
+                child: Text(
+                  userId.isNotEmpty ? userId.substring(0, 1) : "A",
+                  style: TextStyle(fontSize: 40.0),
+                ),
               ),
             ),
-            SizedBox(height: 10,),
-          Obx((){
-             if (MainPageController.to.busy) {
-              return 
-                    Center(
-                      child: SizedBox(
-                      width: 50,
-                      height: 50, 
-                      child: CircularProgressIndicator( )),
-                    );
-             }
-              else{
-                return  SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                            style: ButtonStyle(shape:MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              side: BorderSide(color: Theme.of(context).colorScheme.secondary)
-                            )
-                          ) ),
-                            onPressed: () {  Get.to(AddUserCasePage());},
-                          child: Text("Add New Case")),
-                );
-              }
-              })
+            ListTile(
+              title: Text('Sign out'),
+              onTap: _signOut,
+            ),
           ],
         ),
-
-
+      ),
+      body: GoogleMap(
+        onMapCreated: (controller) => mapController = controller,
+        initialCameraPosition: CameraPosition(
+          target: _center,
+          zoom: 15.0,
+        ),
+        markers: _markers,
       ),
     );
   }
-
-Widget  getCaseList(){
-   List<UserCase> caseList = MainPageController.to.caseList;
-
-  List<CaseCard> widgetList =  caseList.map((e)=>  CaseCard(userCase: UserCase(user_id: e.user_id, id: e.id, success_rate: e.success_rate,case_name: e.case_name,forgered:e.forgered, completed: e.completed, create_date: e.create_date))    ).toList();
-  
-  return Column(children: widgetList);
-}
- 
 }
