@@ -1,5 +1,5 @@
 name: Skywalk
-description: A new Flutter project.
+description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.1.1 <4.0.0'
+  sdk: '>=3.2.0-128.0.dev <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,15 +30,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  amplify_api: ^1.0.0
-  amplify_auth_cognito: ^1.0.0
-  amplify_authenticator: ^1.0.0
+ 
+  get: ^4.6.5
+  equatable: ^2.0.3   
+  intl: ^0.18.1 
+  flex_color_scheme: ^7.3.1
   amplify_flutter: ^1.0.0
-  amplify_storage_s3: ^1.0.0
+  amplify_auth_cognito: ^1.0.0
+  google_maps_flutter: ^2.1.1
+  flutter_google_places_hoc081098: ^1.2.0
+  google_maps_webservice: 0.0.20-nullsafety.5
+  permission_handler: ^10.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.2  
+  http: ^0.13.0
+  awesome_snackbar_content: ^0.1.3
+  percent_indicator: ^4.2.3
+  dotted_border: ^2.0.0+3
+  location: ^5.0.3
 
 dev_dependencies:
   flutter_test:
@@ -49,7 +60,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  #flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
