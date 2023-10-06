@@ -59,7 +59,7 @@ class App extends StatelessWidget {
         // fontFamily: GoogleFonts.notoSans().fontFamily,
       ),
       title: "Login Page",
-      home: MainPage(),
+      home: LoginPage(),
     );
   }
 }
