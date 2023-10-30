@@ -39,7 +39,6 @@ dependencies:
   amplify_auth_cognito: ^1.0.0
   google_maps_flutter: ^2.1.1
   flutter_google_places_hoc081098: ^1.2.0
-  google_maps_webservice: 0.0.20-nullsafety.5
   permission_handler: ^10.2.0
 
   # The following adds the Cupertino Icons font to your application.
@@ -50,6 +49,9 @@ dependencies:
   percent_indicator: ^4.2.3
   dotted_border: ^2.0.0+3
   location: ^5.0.3
+  google_maps_routes: ^1.1.2
+  geolocator: ^10.1.0
+  flutter_js: ^0.7.2
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
+  flutter_js
+  geolocator_windows
   permission_handler_windows
 )
 

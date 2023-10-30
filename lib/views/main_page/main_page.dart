@@ -4,8 +4,12 @@ import 'package:get/get.dart';
 import 'package:Skywalk/views/login_page/login_page.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:Skywalk/views/routes/routes.dart';
+import 'package:google_maps_routes/google_maps_routes.dart';
 // import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
+
 
 class MainPage extends StatefulWidget {
   @override
@@ -15,17 +19,33 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   late GoogleMapController mapController;
   late GoogleMapsPlaces _places;
-  final LatLng _center = const LatLng(37.422060, -122.084057);
+  LatLng _center = LatLng(37.422060, -122.084057);
+  // late LatLng _center;
   Set<Marker> _markers = {};
   String userId = '';
   String userEmail = '';
-
+  Set<Polyline> _polylines = {};
+  MapsRoutes route = new MapsRoutes();
+  
   @override
   void initState() {
     super.initState();
     _places =
         GoogleMapsPlaces(apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE");
     _fetchUserId();
+    getUserLocation();
+  }
+
+  Future<void> getUserLocation() async{
+    LocationPermission permission = await Geolocator.requestPermission();
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    LatLng userLocation = LatLng(position.latitude, position.longitude);
+    print(userLocation);
+    setState(() {
+      _center = userLocation;
+      mapController.moveCamera(CameraUpdate.newLatLng(userLocation));
+    });
+
   }
 
   Future<void> _fetchUserId() async {
@@ -72,6 +92,10 @@ class _MainPageState extends State<MainPage> {
         print("Location details are null");
         return;
       }
+      LatLng destination  = LatLng(lat, lng);
+
+      // GoogleMap.addPolyline(route.routes);
+
       print(p.description);
       print(lat);
       print(lng);
@@ -79,7 +103,11 @@ class _MainPageState extends State<MainPage> {
       // Move the camera to the location
       mapController.moveCamera(CameraUpdate.newLatLng(LatLng(lat, lng)));
       // Optionally add a marker on the location
+      route = await getRoute(_center, destination,route);
+      // Set<Polyline> routes = newRoute.routes;
+      print(route.routes.first);
       setState(() {
+        _polylines.add(route.routes.first);
         // This assumes you have a markers Set declared in your state
         _markers.add(Marker(
           markerId: MarkerId(p.placeId!), // A unique id for each marker
@@ -143,6 +171,7 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
       body: GoogleMap(
+        polylines: _polylines,
         onMapCreated: (controller) => mapController = controller,
         initialCameraPosition: CameraPosition(
           target: _center,
