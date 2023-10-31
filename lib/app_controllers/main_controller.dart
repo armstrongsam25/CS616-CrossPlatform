@@ -2,7 +2,7 @@
 
 import 'package:get/get.dart';
 
-import 'dart:developer' as developer;
+// import 'dart:developer' as developer;
 
 class MainController extends GetxController {
   static MainController get to => Get.find();
@@ -19,7 +19,6 @@ class MainController extends GetxController {
 
   @override
   void onClose() {
-    // TODO: implement onClose
     super.onClose();
   }
 

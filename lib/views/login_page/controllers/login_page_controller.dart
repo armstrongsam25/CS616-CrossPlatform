@@ -1,9 +1,8 @@
-import 'package:Skywalk/app_controllers/main_controller.dart';
+// import 'package:Skywalk/app_controllers/main_controller.dart';
 import 'package:Skywalk/models/status.dart';
 import 'package:Skywalk/services/apis.dart';
 import 'package:Skywalk/utils/status_codes.dart';
 import 'package:get/get.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'dart:developer' as developer;
 
@@ -31,7 +30,6 @@ class LoginPageController extends GetxController {
 
   @override
   void onClose() {
-    // TODO: implement onClose
     super.onClose();
   }
 

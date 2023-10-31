@@ -5,7 +5,11 @@ import 'package:Skywalk/views/login_page/login_page.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 // import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:google_maps_webservice/places.dart';
+import 'package:google_maps_webservice/places.dart' as gmaps;
+import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -14,18 +18,76 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   late GoogleMapController mapController;
-  late GoogleMapsPlaces _places;
+  late gmaps.GoogleMapsPlaces _places;
   final LatLng _center = const LatLng(37.422060, -122.084057);
   Set<Marker> _markers = {};
   String userId = '';
   String userEmail = '';
+  gmaps.PlaceDetails? _selectedPlaceDetails;
+  bool isCollapsed = true; // Track whether the panel is collapsed
+  Set<Polyline> _polylines = {};
+  LatLng? _currentUserLocation;
+
+  Future<void> _getCurrentUserLocation() async {
+    final locationService = Location();
+    final permission = await locationService.hasPermission();
+
+    if (permission == PermissionStatus.denied ||
+        permission == PermissionStatus.deniedForever) {
+      await locationService.requestPermission();
+    }
+
+    final currentLocation = await locationService.getLocation();
+    setState(() {
+      _currentUserLocation =
+          LatLng(currentLocation.latitude!, currentLocation.longitude!);
+    });
+
+    if (mapController != null) {
+      mapController.moveCamera(CameraUpdate.newLatLng(_currentUserLocation!));
+    }
+  }
+
+  Future<List<LatLng>> getWalkingDirections(
+      LatLng start, LatLng destination) async {
+    const String apiKey =
+        'AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE'; // Replace with your API key
+    final response = await http.get(Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${start.latitude},${start.longitude}&destination=${destination.latitude},${destination.longitude}&mode=walking&key=$apiKey'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print(data);
+
+      if (data['status'] == "OK") {
+        List<LatLng> result = [];
+
+        // Extract LatLng points from steps
+        for (var route in data['routes']) {
+          for (var leg in route['legs']) {
+            for (var step in leg['steps']) {
+              var start_location = step['start_location'];
+              var end_location = step['end_location'];
+              result.add(LatLng(start_location['lat'], start_location['lng']));
+              result.add(LatLng(end_location['lat'], end_location['lng']));
+            }
+          }
+        }
+
+        print(result);
+        return result;
+      }
+    }
+    return [];
+  }
 
   @override
   void initState() {
     super.initState();
-    _places =
-        GoogleMapsPlaces(apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE");
+    _places = gmaps.GoogleMapsPlaces(
+        apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE");
     _fetchUserId();
+    _getCurrentUserLocation();
   }
 
   Future<void> _fetchUserId() async {
@@ -59,7 +121,7 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  Future<void> _displayPrediction(Prediction? p) async {
+  Future<void> _displayPrediction(gmaps.Prediction? p) async {
     try {
       if (p == null) {
         print("Prediction is null");
@@ -68,29 +130,39 @@ class _MainPageState extends State<MainPage> {
       final detail = await _places.getDetailsByPlaceId(p.placeId!);
       final lat = detail.result.geometry?.location.lat;
       final lng = detail.result.geometry?.location.lng;
+
       if (lat == null || lng == null) {
         print("Location details are null");
         return;
       }
-      print(p.description);
-      print(lat);
-      print(lng);
 
       // Move the camera to the location
       mapController.moveCamera(CameraUpdate.newLatLng(LatLng(lat, lng)));
-      // Optionally add a marker on the location
+
+      // final route = await getWalkingDirections(_currentUserLocation ?? _center, LatLng(lat, lng));
+
       setState(() {
-        // This assumes you have a markers Set declared in your state
+        _selectedPlaceDetails = detail.result;
+        isCollapsed = false;
+
+        // Clear existing markers
+        _markers.clear();
+
+        // Add the new marker
         _markers.add(Marker(
-          markerId: MarkerId(p.placeId!), // A unique id for each marker
+          markerId: MarkerId(p.placeId!),
           position: LatLng(lat, lng),
         ));
+
+        _markers = Set.of(_markers);
       });
+      _panelController.open();
     } catch (e) {
       print("Error in _displayPrediction: $e");
     }
   }
 
+  final PanelController _panelController = PanelController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,19 +172,14 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () async {
-              try {
-                final p = await PlacesAutocomplete.show(
-                  context: context,
-                  apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE",
-                  mode: Mode.overlay,
-                  language: "en",
-                  components: [Component(Component.country, "us")],
-                );
-
-                await _displayPrediction(p);
-              } catch (e) {
-                print("Error: $e");
-              }
+              final p = await PlacesAutocomplete.show(
+                context: context,
+                apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE",
+                mode: Mode.overlay,
+                language: "en",
+                components: [gmaps.Component(gmaps.Component.country, "us")],
+              );
+              await _displayPrediction(p);
             },
           ),
         ],
@@ -142,13 +209,128 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-      body: GoogleMap(
-        onMapCreated: (controller) => mapController = controller,
-        initialCameraPosition: CameraPosition(
-          target: _center,
-          zoom: 15.0,
-        ),
-        markers: _markers,
+      body: Stack(
+        children: [
+          GoogleMap(
+            polylines: _polylines,
+            onMapCreated: (controller) {
+              mapController = controller;
+              if (_currentUserLocation != null) {
+                mapController
+                    .moveCamera(CameraUpdate.newLatLng(_currentUserLocation!));
+              }
+            },
+            initialCameraPosition: CameraPosition(
+              target: _currentUserLocation ?? _center,
+              zoom: 15.0,
+            ),
+            markers: _markers,
+            onTap: (LatLng position) {
+              if (_panelController.isPanelOpen) {
+                _panelController.close();
+                setState(() {
+                  isCollapsed = true;
+                });
+              }
+            },
+          ),
+          SlidingUpPanel(
+            controller: _panelController,
+            onPanelSlide: (double position) {
+              if (position == 0 && !isCollapsed) {
+                setState(() {
+                  isCollapsed = true;
+                });
+              } else if (position > 0 && isCollapsed) {
+                setState(() {
+                  isCollapsed = false;
+                });
+              }
+            },
+            panel: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: IgnorePointer(
+                ignoring: isCollapsed,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _selectedPlaceDetails?.name ?? "No Location Selected",
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 10.0),
+                    Text(
+                      _selectedPlaceDetails?.formattedAddress ?? "",
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    SizedBox(height: 20.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10.0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (_selectedPlaceDetails?.geometry?.location !=
+                                    null) {
+                                  final route = await getWalkingDirections(
+                                      _currentUserLocation ?? _center,
+                                      LatLng(
+                                          _selectedPlaceDetails!
+                                              .geometry!.location.lat,
+                                          _selectedPlaceDetails!
+                                              .geometry!.location.lng));
+                                  setState(() {
+                                    _polylines.clear();
+                                    _polylines.add(Polyline(
+                                      polylineId: PolylineId(
+                                          _selectedPlaceDetails?.placeId ??
+                                              "0"),
+                                      color: Colors.blue,
+                                      width: 3,
+                                      points: route,
+                                    ));
+                                    _polylines = Set.of(_polylines);
+                                  });
+                                }
+                              },
+                              child: Text("Button 1"),
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.blue,
+                                onPrimary: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            child: Text("Button 2"),
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.grey[300],
+                              onPrimary: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            minHeight: 50.0,
+            maxHeight: 250.0,
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
-import 'package:Skywalk/app_controllers/main_controller.dart';
+// import 'package:Skywalk/app_controllers/main_controller.dart';
 import 'package:Skywalk/models/status.dart';
-import 'package:Skywalk/models/user.dart';
+// import 'package:Skywalk/models/user.dart';
 import 'package:Skywalk/services/apis.dart';
 import 'package:Skywalk/utils/status_codes.dart';
 import 'package:get/get.dart';
@@ -33,7 +33,6 @@ class SignupPageController extends GetxController {
 
   @override
   void onClose() {
-    // TODO: implement onClose
     super.onClose();
   }
 
