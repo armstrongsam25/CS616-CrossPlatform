@@ -1,15 +1,18 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.dart';
 import 'package:get/get.dart';
-import 'package:Skywalk/views/login_page/login_page.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart' as gmaps;
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
+
+import 'package:Skywalk/views/login_page/login_page.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -24,9 +27,12 @@ class _MainPageState extends State<MainPage> {
   String userId = '';
   String userEmail = '';
   gmaps.PlaceDetails? _selectedPlaceDetails;
+
+  bool addWarningMark = false;
   bool isCollapsed = true; // Track whether the panel is collapsed
   Set<Polyline> _polylines = {};
   LatLng? _currentUserLocation;
+  List<Report> reportList = [];
 
   Future<void> _getCurrentUserLocation() async {
     final locationService = Location();
@@ -163,6 +169,11 @@ class _MainPageState extends State<MainPage> {
   }
 
   final PanelController _panelController = PanelController();
+  //final _titles = ['Report Warning','Report Crash', 'Q&A'];
+  //final _icons = [Icons.warning, Icons.car_crash, Icons.question_answer ];
+  TextEditingController _textFieldController = TextEditingController();
+
+  String action = 'Choose an action';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,6 +191,12 @@ class _MainPageState extends State<MainPage> {
                 components: [gmaps.Component(gmaps.Component.country, "us")],
               );
               await _displayPrediction(p);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: () async {
+              if (!reportList.isEmpty) _showBottomSheet(context);
             },
           ),
         ],
@@ -201,6 +218,14 @@ class _MainPageState extends State<MainPage> {
                   style: TextStyle(fontSize: 40.0),
                 ),
               ),
+            ),
+            ListTile(
+              title: Text('User Settings'),
+              onTap: _signOut,
+            ),
+            ListTile(
+              title: Text('Route History'),
+              onTap: _signOut,
             ),
             ListTile(
               title: Text('Sign out'),
@@ -225,7 +250,13 @@ class _MainPageState extends State<MainPage> {
               zoom: 15.0,
             ),
             markers: _markers,
-            onTap: (LatLng position) {
+            onLongPress: (LatLng position) {
+              log("Message from long press: " +
+                  position.latitude.toString() +
+                  " " +
+                  position.longitude.toString());
+            },
+            onTap: (LatLng position) async {
               if (_panelController.isPanelOpen) {
                 _panelController.close();
                 setState(() {
@@ -303,7 +334,7 @@ class _MainPageState extends State<MainPage> {
                                   });
                                 }
                               },
-                              child: Text("Button 1"),
+                              child: Text("Get Directions"),
                               style: ElevatedButton.styleFrom(
                                 primary: Colors.blue,
                                 onPrimary: Colors.white,
@@ -313,10 +344,18 @@ class _MainPageState extends State<MainPage> {
                         ),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {},
-                            child: Text("Button 2"),
+                            onPressed: () async {
+                              await _displayTextInputDialog(context);
+                              if (_panelController.isPanelOpen) {
+                                _panelController.close();
+                                setState(() {
+                                  isCollapsed = true;
+                                });
+                              }
+                            },
+                            child: Text("Report Warning"),
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.grey[300],
+                              primary: Colors.red[300],
                               onPrimary: Colors.black,
                             ),
                           ),
@@ -334,4 +373,72 @@ class _MainPageState extends State<MainPage> {
       ),
     );
   }
+
+  Future<void> _displayTextInputDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Add Warning'),
+          content: TextField(
+            controller: _textFieldController,
+            decoration: InputDecoration(hintText: "Write your message here"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('CANCEL'),
+              onPressed: () {
+                //addWarningMark=false;
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                reportList.add(Report(
+                    message: _textFieldController.text, latLng: LatLng(0, 0)));
+                //addWarningMark=true;
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (Report r in reportList)
+                Card(
+                  child: ListTile(
+                    title: Text("Warning"),
+                    subtitle: Text(r.message),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class Report {
+  String message;
+  LatLng latLng;
+  Report({
+    required this.message,
+    required this.latLng,
+  });
 }
