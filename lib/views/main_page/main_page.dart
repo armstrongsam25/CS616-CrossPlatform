@@ -2,6 +2,9 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:Skywalk/views/main_page/controllers/main_page_controller.dart';
+import 'package:Skywalk/views/route_history.dart';
+import 'package:Skywalk/views/user_settings.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.dart';
@@ -94,6 +97,10 @@ class _MainPageState extends State<MainPage> {
         apiKey: "AIzaSyA-IdEbSqz6C8NL0-RLzPF-17Byi5cIxNE");
     _fetchUserId();
     _getCurrentUserLocation();
+
+    if (!Get.isRegistered<MainPageController>()) {
+      Get.put(MainPageController());
+    }
   }
 
   Future<void> _fetchUserId() async {
@@ -220,16 +227,16 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             ListTile(
-              title: Text('User Settings'),
+              title: Text('Sign out'),
               onTap: _signOut,
             ),
             ListTile(
               title: Text('Route History'),
-              onTap: _signOut,
+              onTap: () => Get.to(RouteHistory()),
             ),
             ListTile(
-              title: Text('Sign out'),
-              onTap: _signOut,
+              title: Text('User Settings'),
+              onTap: () => Get.to(UserSettings()),
             ),
           ],
         ),

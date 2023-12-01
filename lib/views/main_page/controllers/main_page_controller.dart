@@ -15,6 +15,7 @@ class MainPageController extends GetxController {
   get status => _status.value;
   set status(value) => _status.value = value;
 
+  List<Address> adressList = [];
   get busy => _busy.value;
   set busy(value) => _busy.value = value;
 
@@ -28,7 +29,13 @@ class MainPageController extends GetxController {
 
   @override
   void onReady() async {
-    await getUsercases();
+    adressList.add(Address(name: "Home", address: "300 Alumni Drive"));
+
+    adressList.add(Address(name: "School", address: "University of Kentucky"));
+
+    adressList.add(Address(
+        name: "Work",
+        address: "Marksburry Building, Computer Science Department"));
 
     developer.log("OnReady", name: 'MainPageController');
     super.onReady();
@@ -47,27 +54,17 @@ class MainPageController extends GetxController {
     busy = false;
   }
 
-  Future<void> getUsercases() async {
-    busy = true;
-    Status result =
-        await ApiServices.to.getUserCaseList(MainController.to.user_id);
-    status = result.code;
-    if (result.code == STATUS_CODES.QUERY_SUCCESSFULL.code) {
-      caseList = result.data;
-
-      for (int i = 0; i < result.data.length; i++) {
-        developer.log(result.data[i].toJson().toString(),
-            name: 'MainPageController');
-      }
-    } else {
-      developer.log(result.codeString, name: 'MainPageController');
-      caseList = <UserCase>[];
-    }
-    busy = false;
-  }
-
   @override
   void onInit() async {
     super.onInit();
   }
+}
+
+class Address {
+  String name;
+  String address;
+  Address({
+    required this.name,
+    required this.address,
+  });
 }

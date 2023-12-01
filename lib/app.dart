@@ -22,6 +22,7 @@ class App extends StatelessWidget {
 
     return GetMaterialApp(
       themeMode: ThemeMode.dark,
+      debugShowCheckedModeBanner: false,
       theme: FlexThemeData.light(
         scheme: FlexScheme.deepBlue,
         surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
@@ -59,7 +60,7 @@ class App extends StatelessWidget {
         // fontFamily: GoogleFonts.notoSans().fontFamily,
       ),
       title: "Login Page",
-      home: MainPage(),
+      home: LoginPage(),
     );
   }
 }
