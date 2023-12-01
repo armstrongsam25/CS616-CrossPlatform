@@ -34,7 +34,12 @@ class _LoginPageState extends State<LoginPage> {
     double maxWidth = MediaQuery.of(context).size.width * 0.65;
 
     return Scaffold(
-      appBar: AppBar(title: Text("Login Page")),
+      backgroundColor: Color(0xFF0033A0),
+      appBar: AppBar(
+        title: Text("Login Page"),
+        backgroundColor: Color.fromARGB(255, 4, 30, 68),
+        centerTitle: true,
+      ),
       body: Center(
         child: Container(
           width: maxWidth,
@@ -45,6 +50,14 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Text(
+                    'CrossPlatform - SafeWalk',
+                    style: TextStyle(
+                        fontSize: 44.0,
+                        fontWeight: FontWeight.normal,
+                        color: Color.fromARGB(255, 252, 251, 255)),
+                  ),
+                  SizedBox(height: 24.0),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -90,6 +103,25 @@ class _LoginPageState extends State<LoginPage> {
                               ..showSnackBar(snackBar);
                           }
                         },
+                        style: ElevatedButton.styleFrom(
+                          primary: Color(
+                              0xFF0033A0), // Set the background color to UKY blue
+                          onPrimary:
+                              Colors.white, // Set the text color to white
+                          side: BorderSide(
+                              color: Colors.white,
+                              width: 2.0), // Set the border to white
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 40.0,
+                              vertical: 20.0), // Add padding to increase size
+                          textStyle: TextStyle(
+                            fontSize: 18, // You can adjust font size here
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                30.0), // You can adjust border radius here
+                          ),
+                        ),
                         child: Text('Login'),
                       );
                     } else {
@@ -102,8 +134,15 @@ class _LoginPageState extends State<LoginPage> {
                   }),
                   SizedBox(height: 16.0),
                   TextButton(
-                      onPressed: () => {Get.off(SignUpPage())},
-                      child: Text("Don't you have an account?"))
+                    onPressed: () => {Get.off(SignUpPage())},
+                    child: Text("Don't you have an account?"),
+                    style: ElevatedButton.styleFrom(
+                      onPrimary: Colors.white,
+                      textStyle: TextStyle(
+                        fontSize: 18, // You can adjust font size here
+                      ),
+                    ),
+                  )
                 ]),
           ),
         ),

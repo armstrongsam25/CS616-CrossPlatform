@@ -1,6 +1,6 @@
 import 'package:Skywalk/models/status.dart';
 import 'package:Skywalk/utils/status_codes.dart';
-import 'package:Skywalk/views/common_widgets/common_widgets.dart';
+// import 'package:Skywalk/views/common_widgets/common_widgets.dart';
 import 'package:Skywalk/views/login_page/login_page.dart';
 import 'package:Skywalk/views/main_page/main_page.dart';
 import 'package:Skywalk/views/signup_page/controllers/signup_page_controller.dart';
@@ -66,7 +66,12 @@ class _SignUpPageState extends State<SignUpPage> {
     double maxWidth = MediaQuery.of(context).size.width * 0.65;
 
     return Scaffold(
-      appBar: AppBar(title: Text("Signup Page")),
+      backgroundColor: Color(0xFF0033A0),
+      appBar: AppBar(
+        title: Text("Signup Page"),
+        backgroundColor: Color.fromARGB(255, 4, 30, 68),
+        centerTitle: true,
+      ),
       body: Center(
         child: Container(
           width: maxWidth,
@@ -202,15 +207,35 @@ class _SignUpPageState extends State<SignUpPage> {
                                   .showSnackBar(snackBar);
                             }
                           },
+                          style: ElevatedButton.styleFrom(
+                            primary: Color(
+                                0xFF0033A0), // Set the background color to UKY blue
+                            onPrimary:
+                                Colors.white, // Set the text color to white
+                            side: BorderSide(
+                                color: Colors.white,
+                                width: 2.0), // Set the border to white
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 40.0,
+                                vertical: 20.0), // Add padding to increase size
+                            textStyle: TextStyle(
+                              fontSize: 18, // You can adjust font size here
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  30.0), // You can adjust border radius here
+                            ),
+                          ),
                           child: Text('SignUp'),
                         );
                       } else {
                         developer.log('busy', name: 'signuppage');
 
                         return SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: CircularProgressIndicator());
+                          width: 50,
+                          height: 50,
+                          child: CircularProgressIndicator(),
+                        );
                       }
                     }),
 
@@ -219,6 +244,12 @@ class _SignUpPageState extends State<SignUpPage> {
                     TextButton(
                       onPressed: () => {Get.off(LoginPage())},
                       child: Text("Already have an account? "),
+                      style: ElevatedButton.styleFrom(
+                        onPrimary: Colors.white,
+                        textStyle: TextStyle(
+                          fontSize: 18, // You can adjust font size here
+                        ),
+                      ),
                     ),
                   ]),
             ),
